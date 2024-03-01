@@ -37,22 +37,28 @@ func VerifyToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.Request.Header.Get("Authorization")
 		// 解析 token 字符串
-		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
-		})
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"msg": "token解析失败"})
-			c.Abort()
-		}
-
-		// 检查 token 是否有效，并获取其中的信息
-		claims, ok := token.Claims.(*Claims)
-		if !ok || !token.Valid {
+		if ok, claims := CheckToken(tokenString); ok {
+			c.Set("username", claims.Username)
+			c.JSON(http.StatusOK, gin.H{"msg": "登录成功"})
+			c.Next()
+		} else {
 			c.JSON(http.StatusBadRequest, gin.H{"msg": "token无效"})
-			c.Abort()
 		}
-		c.Set("username", claims.Username)
-		c.JSON(http.StatusOK, gin.H{"msg": "登录成功"})
-		c.Next()
 	}
+}
+
+func CheckToken(tokenstring string) (bool, *Claims) {
+	token, err := jwt.ParseWithClaims(tokenstring, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+	if err != nil {
+		return false, nil
+	}
+
+	// 检查 token 是否有效，并获取其中的信息
+	claims, ok := token.Claims.(*Claims)
+	if !ok || !token.Valid {
+		return false, nil
+	}
+	return true, claims
 }

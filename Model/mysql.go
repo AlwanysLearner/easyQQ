@@ -33,7 +33,11 @@ func InitDatabase() {
 		log.Fatal("failed creating database:%w", err)
 		return
 	}
+	// 创建 user 表
 	db.AutoMigrate(&User{})
+
+	// 创建 message 表
+	db.AutoMigrate(&Message{})
 	mysqldb = db
 }
 func DataBaseSessoin() *gorm.DB {

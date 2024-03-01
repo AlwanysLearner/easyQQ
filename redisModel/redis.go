@@ -8,7 +8,7 @@ import (
 
 type RedisConfig struct {
 	Addr     string `json:"Addr"`
-	Password int    `json:"password"`
+	Password string `json:"Password"`
 	DB       int    `json:"DB"`
 }
 
