@@ -38,6 +38,8 @@ func InitDatabase() {
 
 	// 创建 message 表
 	db.AutoMigrate(&Message{})
+	db.AutoMigrate(&Group{})
+	db.AutoMigrate(&GroupMember{})
 	mysqldb = db
 }
 func DataBaseSessoin() *gorm.DB {

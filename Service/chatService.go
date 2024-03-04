@@ -3,7 +3,6 @@ package Service
 import (
 	"github.com/AlwanysLearner/easyQQ/Middleware"
 	"github.com/AlwanysLearner/easyQQ/Model"
-	"github.com/AlwanysLearner/easyQQ/Service/request"
 	"github.com/AlwanysLearner/easyQQ/redisModel"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -36,7 +35,7 @@ func ChatHandle(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"msg": "Could not open websocket connection"})
 			return
 		}
-		user := request.NewUser(claims.Username, conn)
+		user := NewUser(claims.Username, conn)
 		// 存储连接信息
 		mapLock.Lock()
 		OnlineMap[user.Username] = user.Conn
@@ -91,7 +90,7 @@ func OutLine(username string) {
 	mapLock.Unlock()
 
 }
-func UserList(user *request.User) {
+func UserList(user *User) {
 	msg := ""
 	mapLock.RLock()
 	for k, _ := range OnlineMap {
@@ -103,19 +102,31 @@ func UserList(user *request.User) {
 	user.Conn.WriteMessage(websocket.TextMessage, []byte(msg))
 }
 
-func Chat(user *request.User, username string, msg string) {
+func Chat(user *User, username string, msg string) {
 	mapLock.RLock()
 	u, ok := OnlineMap[username]
 	mapLock.RUnlock()
+	msg = user.Username + ":" + msg
 	if ok {
-		msg = user.Username + ":" + msg
 		u.WriteMessage(websocket.TextMessage, []byte(msg))
-		for !redisModel.StoreMessage(&redisModel.Message{Time: float64(time.Now().Unix()), Msg: msg}, username) {
+	}
+	for !redisModel.StoreMessage(&redisModel.Message{Time: float64(time.Now().Unix()), Msg: msg}, username) {
+	}
+	m := &Model.Message{Msg: msg, Time: float64(time.Now().Unix()), Username: username}
+	MysqlMessage <- m
+}
+
+func GroupChat(user *User, groupName string, msg string) {
+	group := &Model.Group{GroupName: groupName}
+	group = group.FindGroupByName()
+	if group == nil {
+		user.Conn.WriteMessage(websocket.TextMessage, []byte("群不存在..."))
+	}
+	member := Model.MemberList(int(group.ID))
+	for _, v := range member {
+		if v.Username != user.Username {
+			Chat(user, v.Username, msg)
 		}
-		m := &Model.Message{Msg: msg, Time: float64(time.Now().Unix()), Username: username}
-		MysqlMessage <- m
-	} else {
-		user.Conn.WriteMessage(websocket.TextMessage, []byte("用户不在线..."))
 	}
 }
 

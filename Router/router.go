@@ -25,4 +25,7 @@ func InitRouter(r *gin.Engine) {
 	apirouter.GET("/chat/getchat", Service.ChatHandle)
 	login_apiRouter.POST("/app/exit/", Service.Exit)
 	login_apiRouter.POST("/chat/historymessage/", Service.FindHistoryMessage)
+	login_apiRouter.POST("/chat/group/", Service.CreateGroup)
+	login_apiRouter.POST("/chat/groupmember/", Service.Addmember)
+	login_apiRouter.DELETE("/chat/groupmember/", Service.DeleteMemeber)
 }
