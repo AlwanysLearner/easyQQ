@@ -1,5 +1,5 @@
 {
   "Addr": "localhost:6379",
-  "Password": "",
+  "Password": "你的密码",
   "DB": 0
 }
