@@ -1,8 +1,8 @@
 {
   "host": "127.0.0.1",
   "port": 3306,
-  "user": "root",
-  "password": "Ssy2000226..",
-  "dbname": "easyqq",
+  "user": "你的用户名",
+  "password": "你的密码",
+  "dbname": "你的数据库名称",
   "sslmode": "disable"
 }
